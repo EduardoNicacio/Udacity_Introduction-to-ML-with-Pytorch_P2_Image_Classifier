@@ -1,8 +1,8 @@
 # CIFAR-10 Image Classifier
 
-> A PyTorch convolutional neural network that classifies CIFAR-10 images at **85.21% test accuracy** — built to answer one question for a self-driving car startup: *build an image classifier in-house, or buy one from Detectocorp?*
+> A PyTorch convolutional neural network that classifies CIFAR-10 images at **84.92% test accuracy** — built to answer one question for a self-driving car startup: *build an image classifier in-house, or buy one from Detectocorp?*
 
-**Verdict: build.** Our in-house model beats Detectocorp's claimed 70% by more than 15 points, and it was trained in ~12 minutes on a single laptop GPU with only **1.15M parameters**.
+**Verdict: build.** Our in-house model beats Detectocorp's claimed 70% by nearly 15 points, and it was trained in ~12 minutes on a single laptop GPU with only **1.15M parameters**.
 
 ---
 
@@ -10,8 +10,8 @@
 
 | Benchmark | Accuracy | Outcome |
 | :--- | ---: | :--- |
-| **In-house CNN (this project)** | **85.21%** | ✅ Recommended build |
-| Detectocorp vendor claim | 70.00% | ❌ Beaten by +15.2 pts |
+| **In-house CNN (this project)** | **84.92%** | ✅ Recommended build |
+| Detectocorp vendor claim | 70.00% | ❌ Beaten by +14.9 pts |
 | Deep Belief Networks — Krizhevsky, 2010 | 78.90% | Beaten |
 | Maxout Networks — Goodfellow et al., 2013 | 90.60% | Headroom remains |
 | Wide Residual Networks — Zagoruyko et al., 2016 | 96.00% | Headroom remains |
@@ -21,9 +21,9 @@
 
 | Class | plane | car | bird | cat | deer | dog | frog | horse | ship | truck |
 | :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Accuracy | 88.5% | **93.5%** | 76.2% | 69.0% | 85.1% | 78.6% | 90.8% | 86.8% | 92.4% | 91.2% |
+| Accuracy | 86.2% | **93.8%** | 76.5% | 68.4% | 84.6% | 79.2% | 89.5% | 87.4% | 93.3% | 90.3% |
 
-Training loss fell from **1.632 → 0.415** over 30 epochs; the full log, loss plot, and per-class table are embedded in the notebook.
+Training loss fell from **1.629 → 0.420** over 30 epochs; the full log, loss plot, and per-class table are embedded in the notebook. Inference outputs are softmax probabilities, verified to sum to **1.000000** across all 10,000 test images.
 
 ---
 
@@ -38,14 +38,16 @@ Input 3×32×32
   │
   ├─ Flatten (2048)
   ├─ Linear(2048→512) → ReLU → Dropout(p=0.5)
-  └─ Linear(512→10)  → raw logits (no softmax)
+  └─ Linear(512→10) → softmax probabilities (default)
+                      return_logits=True → raw logits for CrossEntropyLoss
 ```
 
 | Choice | Setting |
 | :--- | :--- |
 | Data augmentation | `RandomCrop(32, padding=4)`, `RandomHorizontalFlip` (train only) |
 | Normalization | CIFAR-10 mean `(0.4914, 0.4822, 0.4465)` / std `(0.2470, 0.2435, 0.2616)` |
-| Loss | `CrossEntropyLoss` (expects raw logits) |
+| Outputs | `forward()` returns 10-class softmax probabilities; training explicitly requests raw logits (`return_logits=True`) |
+| Loss | `CrossEntropyLoss` on raw logits |
 | Optimizer | SGD — `lr=0.01`, `momentum=0.9`, `weight_decay=5e-4` |
 | Scheduler | `CosineAnnealingLR(T_max=30)` |
 | Training | 30 epochs, batch size 64 |
